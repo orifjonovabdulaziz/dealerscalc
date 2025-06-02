@@ -1,6 +1,11 @@
-from django.urls import path
-from .views import DealerGroupListView
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+
+from .views import DealerGroupViewSet
+
+router = DefaultRouter()
+router.register(r'', DealerGroupViewSet, basename='dealergroup')
 
 urlpatterns = [
-    path('', DealerGroupListView.as_view()),
+    path('', include(router.urls)),
 ]

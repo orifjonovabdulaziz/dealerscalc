@@ -25,7 +25,7 @@ SECRET_KEY = "django-insecure-d0pp@692b1o#t&-&df76@lmq2c6#kt^7i9px75mj(5o)_yyx7$
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -41,6 +41,10 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'users',
     'dealers',
+    'clients',
+    'products',
+    'sales',
+    'incomes',
 ]
 
 AUTH_USER_MODEL = 'users.User'
