@@ -2,6 +2,8 @@ from decimal import Decimal
 from sales.models import Outcome
 from .models import DebtRepaymentHistory
 from django.db import models
+from rest_framework.exceptions import ValidationError
+
 
 def process_income_and_repay_debts(income):
     if income.payment_type == 'transfer':
@@ -10,6 +12,9 @@ def process_income_and_repay_debts(income):
         available_amount = income.kredit * Decimal(income.rate) / Decimal(100)
     else:
         available_amount = income.kredit
+
+
+
 
     outcomes = Outcome.objects.filter(
         client=income.client,
@@ -53,3 +58,24 @@ def process_income_and_repay_debts(income):
     income.client.total_debt = total_debt
     income.client.debt_status = 'has_debt' if total_debt > 0 else 'no_debt'
     income.client.save()
+
+
+
+
+def validate_income_amount(client, kredit, payment_type, rate=None):
+    if payment_type == 'transfer':
+        if rate is None:
+            raise ValidationError("Rate must be provided for transfer payments")
+        available_amount = kredit * Decimal(rate) / Decimal(100)
+    else:
+        available_amount = kredit
+
+    total_debt = Outcome.objects.filter(
+        client=client,
+        paid=False
+    ).aggregate(total=models.Sum('debt'))['total'] or Decimal('0.00')
+
+    if available_amount > total_debt:
+        raise ValidationError(f"Сумма прихода превышает долг клиента. Максимально допустимая сумма: {total_debt}")
+
+    return available_amount

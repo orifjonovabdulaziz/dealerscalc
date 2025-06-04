@@ -5,7 +5,7 @@ class IncomeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Income
         fields = '__all__'
-        read_only_fields = ['user', 'created_at']  # user и created_at ставятся автоматически
+        read_only_fields = ['user', 'created_at']
 
     def validate(self, data):
         payment_type = data.get('payment_type')

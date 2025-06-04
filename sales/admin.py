@@ -24,7 +24,7 @@ class OutcomeItemInline(admin.TabularInline):
 
 @admin.register(Outcome)
 class OutcomeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'client', 'sold_sum_price', 'stock_sum_price', 'profit', 'paid', 'created_at')
+    list_display = ('id', 'user', 'client', 'sold_sum_price', 'stock_sum_price', 'debt', 'profit', 'paid', 'created_at')
     list_filter = ('paid', 'created_at')
     search_fields = ('client__name', 'user__username')
     inlines = [OutcomeItemInline]
