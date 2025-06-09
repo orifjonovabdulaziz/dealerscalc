@@ -26,4 +26,4 @@ class IncomeSerializer(serializers.ModelSerializer):
 class DebtRepaymentHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = DebtRepaymentHistory
-        fields = ['id', 'income', 'amount', 'delta_debt', 'created_at']
+        fields = ['id', 'income', 'amount', 'delta_debt', 'created_at'] 

@@ -5,16 +5,32 @@ from .serializers import OutcomeSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 
+@extend_schema(
+    parameters=[
+        OpenApiParameter(
+            name='client_id',
+            type=OpenApiTypes.INT,
+            location=OpenApiParameter.QUERY,
+            description='ID клиента для фильтрации продаж'
+        )
+    ]
+)
 
 class OutcomeViewSet(viewsets.ModelViewSet):
     queryset = Outcome.objects.all()
     serializer_class = OutcomeSerializer
     permission_classes = [IsAuthenticated]
 
+    # def get_queryset(self):
+    #     return Outcome.objects.filter(user=self.request.user)
     def get_queryset(self):
-        return Outcome.objects.filter(user=self.request.user)
+        queryset = Outcome.objects.filter(user=self.request.user)
+        client_id = self.request.query_params.get('client_id')
+        if client_id is not None:
+            queryset = queryset.filter(client_id=client_id)
+        return queryset
 
     def perform_create(self, serializer):
         serializer.save()

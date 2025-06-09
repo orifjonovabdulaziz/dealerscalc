@@ -8,11 +8,32 @@ from rest_framework.response import Response
 from .models import DebtRepaymentHistory
 from .serializers import DebtRepaymentHistorySerializer
 from rest_framework import status
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+
+@extend_schema(
+    parameters=[
+        OpenApiParameter(
+            name='client_id',
+            type=int,
+            location=OpenApiParameter.QUERY,
+            description='ID клиента для фильтрации доходов'
+        )
+    ]
+)
+
 
 class IncomeViewSet(viewsets.ModelViewSet):
     queryset = Income.objects.all()
     serializer_class = IncomeSerializer
     permission_classes = [IsAuthenticated]
+
+
+    def get_queryset(self):
+        queryset = Income.objects.all()
+        client_id = self.request.query_params.get('client_id')
+        if client_id is not None:
+            queryset = queryset.filter(client_id=client_id)
+        return queryset
 
     def perform_create(self, serializer):
         user = self.request.user
