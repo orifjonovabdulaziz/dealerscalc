@@ -17,10 +17,6 @@ class Outcome(models.Model):
 
     def save(self, *args, **kwargs):
         self.profit = self.sold_sum_price - self.stock_sum_price
-        # if self._state.adding:
-        #     if self.debt in (None, 0):
-        # if self._state.adding:
-        #     self.debt = self.sold_sum_price
         self.paid = self.debt == 0
         super().save(*args, **kwargs)
 

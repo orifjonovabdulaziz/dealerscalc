@@ -29,3 +29,15 @@ class DebtRepaymentHistory(models.Model):
 
     def __str__(self):
         return f"{self.outcome.id} — {self.amount} (осталось: {self.delta_debt})"
+
+
+class DebtRepaymentHistoryDealers(models.Model):
+    income = models.ForeignKey(Income, on_delete=models.CASCADE)
+    dealer = models.ForeignKey(User, on_delete=models.CASCADE)
+    dealer_group = models.ForeignKey('dealers.DealerGroup', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    amount = models.DecimalField(max_digits=12, decimal_places=5)
+    delta_debt = models.DecimalField(max_digits=12, decimal_places=5)
+
+    def __str__(self):
+        return f"{self.dealer.name} - {self.amount} (осталось: {self.delta_debt})"

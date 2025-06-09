@@ -1,9 +1,11 @@
+from drf_spectacular.types import OpenApiTypes
 from rest_framework import viewsets
 from .models import Outcome
 from .serializers import OutcomeSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema
 
 
 class OutcomeViewSet(viewsets.ModelViewSet):
@@ -17,6 +19,7 @@ class OutcomeViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save()
 
+    @extend_schema(request=None, responses={200: OpenApiTypes.OBJECT})
     @action(detail=True, methods=['post'], url_path='receive-profit')
     def receive_profit(self, request, pk=None):
         outcome = self.get_object()

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Income
+from .models import Income, DebtRepaymentHistory
 
 class IncomeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -22,3 +22,8 @@ class IncomeSerializer(serializers.ModelSerializer):
             })
 
         return data
+
+class DebtRepaymentHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DebtRepaymentHistory
+        fields = ['id', 'income', 'amount', 'delta_debt', 'created_at']
