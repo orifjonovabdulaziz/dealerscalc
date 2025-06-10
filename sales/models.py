@@ -14,6 +14,8 @@ class Outcome(models.Model):
     paid = models.BooleanField(default=False)
     received_profit = models.BooleanField(default=False)
     comment = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
         self.profit = self.sold_sum_price - self.stock_sum_price
@@ -30,6 +32,8 @@ class OutcomeItem(models.Model):
     quantity = models.DecimalField(max_digits=10, decimal_places=5)
     sold_price = models.DecimalField(max_digits=12, decimal_places=5)
     stock_price = models.DecimalField(max_digits=12, decimal_places=5)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def get_total_sold(self):
         return self.quantity * self.sold_price
