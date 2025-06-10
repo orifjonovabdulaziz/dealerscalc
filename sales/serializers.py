@@ -8,7 +8,7 @@ from products.models import Product
 class OutcomeItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OutcomeItem
-        fields = ['product', 'quantity', 'sold_price', 'stock_price']
+        fields = ['product', 'quantity', 'sold_price', 'stock_price', 'created_at', 'updated_at']
 
 
 class OutcomeSerializer(serializers.ModelSerializer):
@@ -23,9 +23,9 @@ class OutcomeSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'user', 'client', 'created_at', 'product_list',
             'sold_sum_price', 'stock_sum_price', 'debt',
-            'profit', 'paid', 'received_profit', 'comment'
+            'profit', 'paid', 'received_profit', 'comment', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'user', 'created_at', 'sold_sum_price', 'stock_sum_price', 'debt', 'received_profit', 'profit', 'paid']
+        read_only_fields = ['id', 'user', 'created_at', 'sold_sum_price', 'stock_sum_price', 'debt', 'received_profit', 'profit', 'paid', 'created_at', 'updated_at']
 
     def create(self, validated_data):
         items_data = validated_data.pop('product_list')
