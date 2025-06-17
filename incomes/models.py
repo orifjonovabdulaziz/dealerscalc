@@ -16,6 +16,7 @@ class Income(models.Model):
     rate = models.DecimalField(max_digits=5, decimal_places=2, default=97)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    comment = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.client.name} — {self.kredit} ({self.payment_type})"
@@ -29,6 +30,7 @@ class DebtRepaymentHistory(models.Model):
     delta_debt = models.DecimalField(max_digits=12, decimal_places=5)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    comment = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.outcome.id} — {self.amount} (осталось: {self.delta_debt})"
@@ -43,6 +45,7 @@ class DebtRepaymentHistoryDealers(models.Model):
     delta_debt = models.DecimalField(max_digits=12, decimal_places=5)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    comment = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.dealer.name} - {self.amount} (осталось: {self.delta_debt})"

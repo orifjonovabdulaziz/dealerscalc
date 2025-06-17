@@ -5,7 +5,7 @@ class IncomeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Income
         fields = '__all__'
-        read_only_fields = ['user', 'created_at', 'updated_at']
+        read_only_fields = ['user', 'created_at', 'updated_at', 'comment']
 
     def validate(self, data):
         payment_type = data.get('payment_type')
@@ -26,4 +26,4 @@ class IncomeSerializer(serializers.ModelSerializer):
 class DebtRepaymentHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = DebtRepaymentHistory
-        fields = ['id', 'income', 'amount', 'delta_debt', 'created_at', 'updated_at'] 
+        fields = ['id', 'income', 'amount', 'delta_debt', 'created_at', 'updated_at', 'comment'] 
