@@ -98,7 +98,7 @@ from rest_framework.parsers import FormParser
 from rest_framework.decorators import api_view
 from django.http import FileResponse
 from datetime import datetime
-from dashboard.excel_utils import generate_report_excel_by_dates
+from dashboard.excel_utils import generate_report_excel
 
 class ExcelReportAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -113,5 +113,5 @@ class ExcelReportAPIView(APIView):
         except (TypeError, ValueError):
             return Response({'error': 'Неверный формат даты. Используйте YYYY-MM-DD'}, status=400)
 
-        file_path = generate_report_excel_by_dates(start_date, end_date)
+        file_path = generate_report_excel(start_date, end_date)
         return FileResponse(open(file_path, 'rb'), as_attachment=True, filename='report.xlsx')
