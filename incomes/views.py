@@ -9,15 +9,14 @@ from .models import DebtRepaymentHistory
 from .serializers import DebtRepaymentHistorySerializer
 from rest_framework import status
 from drf_spectacular.utils import extend_schema, OpenApiParameter
+from datetime import datetime
+
 
 @extend_schema(
     parameters=[
-        OpenApiParameter(
-            name='client_id',
-            type=int,
-            location=OpenApiParameter.QUERY,
-            description='ID клиента для фильтрации доходов'
-        )
+        OpenApiParameter(name='client_id', type=int, location=OpenApiParameter.QUERY, description='ID клиента для фильтрации доходов'),
+        OpenApiParameter(name='start_date', type=OpenApiTypes.DATE, location=OpenApiParameter.QUERY, description='Начальная дата (YYYY-MM-DD)'),
+        OpenApiParameter(name='end_date', type=OpenApiTypes.DATE, location=OpenApiParameter.QUERY, description='Конечная дата (YYYY-MM-DD)'),
     ]
 )
 
@@ -27,12 +26,30 @@ class IncomeViewSet(viewsets.ModelViewSet):
     serializer_class = IncomeSerializer
     permission_classes = [IsAuthenticated]
 
-
     def get_queryset(self):
-        queryset = Income.objects.all()
+        queryset = Income.objects.filter(user=self.request.user)
+
         client_id = self.request.query_params.get('client_id')
-        if client_id is not None:
+        start_date = self.request.query_params.get('start_date')
+        end_date = self.request.query_params.get('end_date')
+
+        if client_id:
             queryset = queryset.filter(client_id=client_id)
+
+        if start_date:
+            try:
+                start = datetime.strptime(start_date, "%Y-%m-%d")
+                queryset = queryset.filter(created_at__gte=start)
+            except ValueError:
+                pass
+
+        if end_date:
+            try:
+                end = datetime.strptime(end_date, "%Y-%m-%d")
+                queryset = queryset.filter(created_at__lte=end)
+            except ValueError:
+                pass
+
         return queryset
 
     def perform_create(self, serializer):
@@ -45,9 +62,9 @@ class IncomeViewSet(viewsets.ModelViewSet):
         rate = validated_data.get('rate')
 
         validate_income_amount(client, kredit, payment_type, rate)
-
         income = serializer.save(user=user)
         process_income_and_repay_debts(income)
+
 
 
 class IncomeHistoryByOutcomeView(APIView):

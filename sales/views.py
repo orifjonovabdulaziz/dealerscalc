@@ -6,15 +6,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema, OpenApiParameter
+from datetime import datetime
+
 
 @extend_schema(
     parameters=[
-        OpenApiParameter(
-            name='client_id',
-            type=OpenApiTypes.INT,
-            location=OpenApiParameter.QUERY,
-            description='ID клиента для фильтрации продаж'
-        )
+        OpenApiParameter(name='client_id', type=OpenApiTypes.INT, location=OpenApiParameter.QUERY, description='ID клиента'),
+        OpenApiParameter(name='start_date', type=OpenApiTypes.DATE, location=OpenApiParameter.QUERY, description='Начальная дата (YYYY-MM-DD)'),
+        OpenApiParameter(name='end_date', type=OpenApiTypes.DATE, location=OpenApiParameter.QUERY, description='Конечная дата (YYYY-MM-DD)'),
     ]
 )
 
@@ -27,9 +26,28 @@ class OutcomeViewSet(viewsets.ModelViewSet):
     #     return Outcome.objects.filter(user=self.request.user)
     def get_queryset(self):
         queryset = Outcome.objects.filter(user=self.request.user)
+
         client_id = self.request.query_params.get('client_id')
-        if client_id is not None:
+        start_date = self.request.query_params.get('start_date')
+        end_date = self.request.query_params.get('end_date')
+
+        if client_id:
             queryset = queryset.filter(client_id=client_id)
+
+        if start_date:
+            try:
+                start = datetime.strptime(start_date, "%Y-%m-%d")
+                queryset = queryset.filter(created_at__gte=start)
+            except ValueError:
+                pass
+
+        if end_date:
+            try:
+                end = datetime.strptime(end_date, "%Y-%m-%d")
+                queryset = queryset.filter(created_at__lte=end)
+            except ValueError:
+                pass
+
         return queryset
 
     def perform_create(self, serializer):
