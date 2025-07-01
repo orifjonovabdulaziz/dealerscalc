@@ -1,42 +1,61 @@
 from django.shortcuts import render
-
-# Create your views here.
 from django.db.models import Sum, Q
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from django.utils.timezone import now
-from datetime import timedelta
+from django.utils.timezone import now, make_aware
+from datetime import datetime, timedelta
 from clients.models import Client
 from incomes.models import Income
 from sales.models import Outcome, OutcomeItem
 from decimal import Decimal
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 
 
 class DashboardStatsView(APIView):
     permission_classes = [IsAuthenticated]
+    @extend_schema(
+    parameters=[
+        OpenApiParameter(name='start', description='Начало периода (YYYY-MM-DD)', required=False, type=str),
+        OpenApiParameter(name='end', description='Конец периода (YYYY-MM-DD)', required=False, type=str),
+    ]
+)
 
     def get(self, request):
         user = request.user
         today = now()
-        start_of_month = today.replace(day=1)
-        start_of_year = today.replace(month=1, day=1)
-        start_of_quarter = today.replace(month=((today.month - 1) // 3) * 3 + 1, day=1)
+        
+        # Параметры периода
+        start_str = request.query_params.get('start')
+        end_str = request.query_params.get('end')
+
+        try:
+            start = make_aware(datetime.strptime(start_str, "%Y-%m-%d")) if start_str else today.replace(day=1)
+        except ValueError:
+            start = today.replace(day=1)
+
+        try:
+            end = make_aware(datetime.strptime(end_str, "%Y-%m-%d")) if end_str else today
+        except ValueError:
+            end = today
+
+        # Фильтр по дате
+        date_filter = Q(created_at__range=(start, end))
 
         # Доход
-        total_income = Income.objects.filter(user=user).aggregate(Sum('kredit'))['kredit__sum'] or Decimal(0)
+        total_income = Income.objects.filter(user=user).filter(date_filter).aggregate(Sum('kredit'))['kredit__sum'] or Decimal(0)
 
         # Расход (по себестоимости)
-        total_outcome_stock = Outcome.objects.filter(user=user).aggregate(Sum('stock_sum_price'))['stock_sum_price__sum'] or Decimal(0)
+        total_outcome_stock = Outcome.objects.filter(user=user).filter(date_filter).aggregate(Sum('stock_sum_price'))['stock_sum_price__sum'] or Decimal(0)
 
-        # Прибыль (по Outcome)
-        total_profit = Outcome.objects.filter(user=user).aggregate(Sum('profit'))['profit__sum'] or Decimal(0)
+        # Прибыль
+        total_profit = Outcome.objects.filter(user=user).filter(date_filter).aggregate(Sum('profit'))['profit__sum'] or Decimal(0)
 
-        # Кол-во продуктов (в кг и тоннах)
-        total_quantity_kg = OutcomeItem.objects.filter(outcome__user=user).aggregate(Sum('quantity'))['quantity__sum'] or Decimal(0)
+        # Кол-во продуктов
+        total_quantity_kg = OutcomeItem.objects.filter(outcome__user=user, outcome__created_at__range=(start, end)).aggregate(Sum('quantity'))['quantity__sum'] or Decimal(0)
         total_quantity_tons = total_quantity_kg / Decimal(1000)
 
-        # Статистика клиентов
+        # Статистика клиентов (по всем)
         clients = Client.objects.all()
         total_clients = clients.count()
         paid_clients = clients.filter(total_debt=0).count()
@@ -53,10 +72,11 @@ class DashboardStatsView(APIView):
         ]
 
         return Response({
+            'filter_period': {
+                'start': start.date(),
+                'end': end.date()
+            },
             'header': {
-                'month_period': f"{start_of_month.date()} — {today.date()}",
-                'quarter_period': f"{start_of_quarter.date()} — {today.date()}",
-                'year_period': f"{start_of_year.date()} — {today.date()}",
                 'total_income': float(total_income),
                 'total_outcome': float(total_outcome_stock),
                 'total_profit': float(total_profit),
