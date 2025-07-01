@@ -156,6 +156,9 @@ USE_I18N = True
 
 USE_TZ = True
 
+TELEGRAM_BOT_TOKEN = "TOKEN"
+TELEGRAM_CHAT_ID = "CHAT_ID"
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/

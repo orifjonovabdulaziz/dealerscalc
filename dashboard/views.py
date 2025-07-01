@@ -92,3 +92,26 @@ class DashboardStatsView(APIView):
             },
             'client_history': client_history
         })
+
+
+from rest_framework.parsers import FormParser
+from rest_framework.decorators import api_view
+from django.http import FileResponse
+from datetime import datetime
+from dashboard.excel_utils import generate_report_excel_by_dates
+
+class ExcelReportAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        start = request.query_params.get('start')
+        end = request.query_params.get('end')
+
+        try:
+            start_date = datetime.strptime(start, "%Y-%m-%d").date()
+            end_date = datetime.strptime(end, "%Y-%m-%d").date()
+        except (TypeError, ValueError):
+            return Response({'error': 'Неверный формат даты. Используйте YYYY-MM-DD'}, status=400)
+
+        file_path = generate_report_excel_by_dates(start_date, end_date)
+        return FileResponse(open(file_path, 'rb'), as_attachment=True, filename='report.xlsx')
