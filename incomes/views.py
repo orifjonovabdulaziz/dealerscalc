@@ -9,6 +9,7 @@ from .models import DebtRepaymentHistory
 from .serializers import DebtRepaymentHistorySerializer
 from rest_framework import status
 from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
 from datetime import datetime
 
 
