@@ -2,9 +2,12 @@ from django.db import models
 from users.models import User
 from clients.models import Client
 from products.models import Product
+from dealers.models import DealerGroup
+
 
 class Outcome(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    dealer_group = models.ForeignKey(DealerGroup, on_delete=models.CASCADE, null=True, blank=True)
     client = models.ForeignKey(Client, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     sold_sum_price = models.DecimalField(max_digits=12, decimal_places=5, default=0)

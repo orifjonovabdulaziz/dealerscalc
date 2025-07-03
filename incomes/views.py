@@ -28,7 +28,10 @@ class IncomeViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        queryset = Income.objects.filter(user=self.request.user)
+        user = self.request.user
+        dealer_groups = user.dealer_groups.all()
+
+        queryset = Income.objects.filter(dealer_group__in=dealer_groups)
 
         client_id = self.request.query_params.get('client_id')
         start_date = self.request.query_params.get('start_date')
@@ -53,6 +56,7 @@ class IncomeViewSet(viewsets.ModelViewSet):
 
         return queryset
 
+
     def perform_create(self, serializer):
         user = self.request.user
         validated_data = serializer.validated_data
@@ -63,7 +67,11 @@ class IncomeViewSet(viewsets.ModelViewSet):
         rate = validated_data.get('rate')
 
         validate_income_amount(client, kredit, payment_type, rate)
-        income = serializer.save(user=user)
+
+        # Получаем первую группу пользователя
+        dealer_group = user.dealer_groups.first()
+        income = serializer.save(user=user, dealer_group=dealer_group)
+
         process_income_and_repay_debts(income)
 
 

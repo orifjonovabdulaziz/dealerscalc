@@ -14,18 +14,23 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter
 
 class DashboardStatsView(APIView):
     permission_classes = [IsAuthenticated]
-    @extend_schema(
-    parameters=[
-        OpenApiParameter(name='start', description='Начало периода (YYYY-MM-DD)', required=False, type=str),
-        OpenApiParameter(name='end', description='Конец периода (YYYY-MM-DD)', required=False, type=str),
-    ]
-)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='start', description='Начало периода (YYYY-MM-DD)', required=False, type=str),
+            OpenApiParameter(name='end', description='Конец периода (YYYY-MM-DD)', required=False, type=str),
+        ]
+    )
     def get(self, request):
         user = request.user
         today = now()
-        
-        # Параметры периода
+
+        # Получаем первую группу пользователя
+        dealer_group = user.dealer_groups.first()
+        if not dealer_group:
+            return Response({"detail": "Вы не состоите ни в одной группе."}, status=403)
+
+        # Период
         start_str = request.query_params.get('start')
         end_str = request.query_params.get('end')
 
@@ -42,21 +47,30 @@ class DashboardStatsView(APIView):
         # Фильтр по дате
         date_filter = Q(created_at__range=(start, end))
 
-        # Доход
-        total_income = Income.objects.filter(user=user).filter(date_filter).aggregate(Sum('kredit'))['kredit__sum'] or Decimal(0)
+        # Доходы
+        total_income = Income.objects.filter(
+            user__in=dealer_group.members.all()
+        ).filter(date_filter).aggregate(Sum('kredit'))['kredit__sum'] or Decimal(0)
 
-        # Расход (по себестоимости)
-        total_outcome_stock = Outcome.objects.filter(user=user).filter(date_filter).aggregate(Sum('stock_sum_price'))['stock_sum_price__sum'] or Decimal(0)
+        # Расходы
+        total_outcome_stock = Outcome.objects.filter(
+            dealer_group=dealer_group
+        ).filter(date_filter).aggregate(Sum('stock_sum_price'))['stock_sum_price__sum'] or Decimal(0)
 
-        # Прибыль
-        total_profit = Outcome.objects.filter(user=user).filter(date_filter).aggregate(Sum('profit'))['profit__sum'] or Decimal(0)
+        total_profit = Outcome.objects.filter(
+            dealer_group=dealer_group
+        ).filter(date_filter).aggregate(Sum('profit'))['profit__sum'] or Decimal(0)
 
-        # Кол-во продуктов
-        total_quantity_kg = OutcomeItem.objects.filter(outcome__user=user, outcome__created_at__range=(start, end)).aggregate(Sum('quantity'))['quantity__sum'] or Decimal(0)
+        # Количество продуктов
+        total_quantity_kg = OutcomeItem.objects.filter(
+            outcome__dealer_group=dealer_group,
+            outcome__created_at__range=(start, end)
+        ).aggregate(Sum('quantity'))['quantity__sum'] or Decimal(0)
+
         total_quantity_tons = total_quantity_kg / Decimal(1000)
 
-        # Статистика клиентов (по всем)
-        clients = Client.objects.all()
+        # Клиенты этой группы
+        clients = Client.objects.filter(dealer_group=dealer_group)
         total_clients = clients.count()
         paid_clients = clients.filter(total_debt=0).count()
         debt_sum = clients.aggregate(Sum('total_debt'))['total_debt__sum'] or Decimal(0)

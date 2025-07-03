@@ -1,6 +1,8 @@
 from django.db import models
 from users.models import User
 from clients.models import Client
+from dealers.models import DealerGroup
+
 
 class Income(models.Model):
     PAYMENT_TYPE_CHOICES = [
@@ -9,6 +11,7 @@ class Income(models.Model):
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    dealer_group = models.ForeignKey(DealerGroup, on_delete=models.CASCADE, null=True, blank=True)
     client = models.ForeignKey(Client, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     kredit = models.DecimalField(max_digits=12, decimal_places=2)

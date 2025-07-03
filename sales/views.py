@@ -25,7 +25,9 @@ class OutcomeViewSet(viewsets.ModelViewSet):
     # def get_queryset(self):
     #     return Outcome.objects.filter(user=self.request.user)
     def get_queryset(self):
-        queryset = Outcome.objects.filter(user=self.request.user)
+        user = self.request.user
+        dealer_groups = user.dealer_groups.all()
+        queryset = Outcome.objects.filter(dealer_group__in=dealer_groups)
 
         client_id = self.request.query_params.get('client_id')
         start_date = self.request.query_params.get('start_date')
@@ -50,8 +52,11 @@ class OutcomeViewSet(viewsets.ModelViewSet):
 
         return queryset
 
+
     def perform_create(self, serializer):
-        serializer.save()
+        dealer_group = self.request.user.dealer_groups.first()
+        serializer.save(user=self.request.user, dealer_group=dealer_group)
+
 
     @extend_schema(request=None, responses={200: OpenApiTypes.OBJECT})
     @action(detail=True, methods=['post'], url_path='receive-profit')

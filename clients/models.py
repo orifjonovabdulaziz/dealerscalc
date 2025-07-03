@@ -1,4 +1,5 @@
 from django.db import models
+from dealers.models import DealerGroup
 
 # Create your models here.
 
@@ -10,6 +11,8 @@ class Client(models.Model):
     ]
 
     name = models.CharField(max_length=255)
+    dealer_group = models.ForeignKey(DealerGroup, on_delete=models.CASCADE, related_name='clients')
+
     total_debt = models.DecimalField(max_digits=12, decimal_places=5, default=0)
     comment = models.TextField(null=True, blank=True)
     phone_number = models.CharField(max_length=20, null=True, blank=True)

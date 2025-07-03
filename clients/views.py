@@ -1,5 +1,4 @@
 from rest_framework import viewsets, filters
-
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Client
@@ -7,14 +6,31 @@ from .serializers import ClientSerializer
 
 
 class ClientViewSet(viewsets.ModelViewSet):
-    queryset = Client.objects.all()
+    queryset = Client.objects.all() 
     serializer_class = ClientSerializer
     permission_classes = [IsAuthenticated]
-
+    
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
     search_fields = ['name', 'phone_number', 'comment', 'created_at', 'updated_at'] 
-    filterset_fields = ['debt_status'] 
+    filterset_fields = ['debt_status']
 
+    def get_queryset(self):
+        user = self.request.user
+        dealer_groups = user.dealer_groups.all()
+        return Client.objects.filter(dealer_group__in=dealer_groups)
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        dealer_groups = user.dealer_groups.all().order_by('id')
+
+        if not dealer_groups.exists():
+            raise ValueError("У пользователя не назначена ни одна группа дилеров.")
+
+        # Назначаем первую группу для избежаний ошибок
+        selected_group = dealer_groups.first()
+
+        serializer.save(dealer_group=selected_group)
+    
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -35,6 +51,8 @@ from decimal import Decimal
         OpenApiParameter(name='end_date', type=OpenApiTypes.DATE, location=OpenApiParameter.QUERY, description='Конечная дата (YYYY-MM-DD)'),
     ]
 )
+
+
 class ClientReportView(APIView):
     permission_classes = [IsAuthenticated]
 
