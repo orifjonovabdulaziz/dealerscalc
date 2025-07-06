@@ -7,14 +7,14 @@ from dealers.models import DealerGroup
 
 class Outcome(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    dealer_group = models.ForeignKey(DealerGroup, on_delete=models.CASCADE, null=True, blank=True)
+    dealer_group = models.ForeignKey(DealerGroup, on_delete=models.CASCADE)
     client = models.ForeignKey(Client, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     sold_sum_price = models.DecimalField(max_digits=12, decimal_places=5, default=0)
     stock_sum_price = models.DecimalField(max_digits=12, decimal_places=5, default=0)
     profit = models.DecimalField(max_digits=12, decimal_places=5, default=0)
-    debt = models.DecimalField(max_digits=12, decimal_places=5)
-    paid = models.BooleanField(default=False)
+    debt = models.DecimalField(max_digits=12, decimal_places=5) # Долг
+    paid = models.BooleanField(default=False) # Статус заплатил или нет
     received_profit = models.BooleanField(default=False)
     comment = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
