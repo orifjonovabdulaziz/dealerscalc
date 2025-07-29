@@ -72,14 +72,16 @@ class OutcomeSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         items_data = validated_data.pop('product_list', None)
 
+        # Обновляем остальные поля модели Outcome
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
-        total_sold = Decimal('0')
-        total_stock = Decimal('0')
-
         if items_data is not None:
-            instance.outcomeitem_set.all().delete()
+            # Удаляем старые связанные OutcomeItem
+            instance.product_list.all().delete()
+
+            total_sold = Decimal('0')
+            total_stock = Decimal('0')
 
             for item in items_data:
                 OutcomeItem.objects.create(outcome=instance, **item)
