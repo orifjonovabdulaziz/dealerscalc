@@ -74,6 +74,25 @@ class IncomeViewSet(viewsets.ModelViewSet):
 
         process_income_and_repay_debts(income)
 
+    
+    def perform_update(self, serializer):
+        user = self.request.user
+        validated_data = serializer.validated_data
+
+        client = validated_data['client']
+        kredit = validated_data['kredit']
+        payment_type = validated_data['payment_type']
+        rate = validated_data.get('rate')
+
+        validate_income_amount(client, kredit, payment_type, rate)
+
+        dealer_group = user.dealer_groups.first()
+        income = serializer.save(user=user, dealer_group=dealer_group)
+
+        # ⚠️ Пересчитываем долги только при необходимости
+        process_income_and_repay_debts(income)
+
+
 
 
 class IncomeHistoryByOutcomeView(APIView):

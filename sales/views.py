@@ -57,6 +57,9 @@ class OutcomeViewSet(viewsets.ModelViewSet):
         dealer_group = self.request.user.dealer_groups.first()
         serializer.save(user=self.request.user, dealer_group=dealer_group)
 
+    def perform_update(self, serializer):
+        return super().perform_update(serializer)
+
 
     @extend_schema(request=None, responses={200: OpenApiTypes.OBJECT})
     @action(detail=True, methods=['post'], url_path='receive-profit')

@@ -16,6 +16,7 @@ from django.utils.timezone import now, make_aware
 from incomes.models import Income
 from sales.models import Outcome, OutcomeItem
 from clients.models import Client
+from dealers.models import DealerGroup
 
 class DashboardStatsView(APIView):
     permission_classes = [IsAuthenticated]
@@ -57,6 +58,7 @@ class DashboardStatsView(APIView):
         total_clients = clients.count()
         paid_clients = clients.filter(total_debt=0).count()
         debt_sum = clients.aggregate(Sum('total_debt'))['total_debt__sum'] or Decimal(0)
+        total_dealers_debt = DealerGroup.objects.all()
 
         client_history = [
             {
@@ -76,6 +78,7 @@ class DashboardStatsView(APIView):
                 'total_income': float(total_income),
                 'total_outcome': float(total_outcome_stock),
                 'total_profit': float(total_profit),
+                'total_dealers_debt': total_dealers_debt,
             },
             'product_quantity': {
                 'kg': float(total_quantity_kg),
