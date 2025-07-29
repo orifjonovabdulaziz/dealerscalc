@@ -68,6 +68,33 @@ class OutcomeSerializer(serializers.ModelSerializer):
             dealer_group.save()
 
         return outcome
+    
+    def update(self, instance, validated_data):
+        items_data = validated_data.pop('product_list', None)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        total_sold = Decimal('0')
+        total_stock = Decimal('0')
+
+        if items_data is not None:
+            instance.outcomeitem_set.all().delete()
+
+            for item in items_data:
+                OutcomeItem.objects.create(outcome=instance, **item)
+                total_sold += item['quantity'] * item['sold_price']
+                total_stock += item['quantity'] * item['stock_price']
+
+            instance.sold_sum_price = total_sold
+            instance.stock_sum_price = total_stock
+            instance.profit = total_sold - total_stock
+            instance.debt = total_sold
+            instance.paid = instance.debt == 0
+
+        instance.save()
+        return instance
+
 
 
 

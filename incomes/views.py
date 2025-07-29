@@ -74,6 +74,21 @@ class IncomeViewSet(viewsets.ModelViewSet):
 
         process_income_and_repay_debts(income)
 
+    def perform_update(self, serializer):
+        user = self.request.user
+        validated_data = serializer.validated_data
+
+        client = validated_data.get('client', serializer.instance.client)
+        kredit = validated_data.get('kredit', serializer.instance.kredit)
+        payment_type = validated_data.get('payment_type', serializer.instance.payment_type)
+        rate = validated_data.get('rate', serializer.instance.rate)
+
+        validate_income_amount(client, kredit, payment_type, rate)
+
+        income = serializer.save(user=user)
+        process_income_and_repay_debts(income)
+
+
 
 
 class IncomeHistoryByOutcomeView(APIView):
